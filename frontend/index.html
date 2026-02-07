@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Placement Predictor</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .card {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 320px;
+      text-align: center;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 5px rgba(102,126,234,0.5);
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #667eea;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #5563d6;
+    }
+
+    .result {
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: 600;
+      min-height: 24px;
+    }
+
+    .success { color: green; }
+    .fail { color: red; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Placement Predictor</h1>
+
+    <input type="number" id="cgpa" placeholder="Enter CGPA" step="0.01" />
+    <input type="number" id="iq" placeholder="Enter IQ" />
+
+    <button onclick="predictPlacement()">Predict</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    async function predictPlacement() {
+      const cgpa = document.getElementById('cgpa').value;
+      const iq = document.getElementById('iq').value;
+      const resultDiv = document.getElementById('result');
+
+      if (!cgpa || !iq) {
+        resultDiv.textContent = "Please enter both CGPA and IQ";
+        resultDiv.className = "result fail";
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            cgpa: parseFloat(cgpa),
+            iq: parseFloat(iq),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.result) {
+          resultDiv.textContent = data.result;
+          resultDiv.className = data.prediction === 1 ? "result success" : "result fail";
+        } else {
+          resultDiv.textContent = "Error: " + data.error;
+          resultDiv.className = "result fail";
+        }
+      } catch (error) {
+        resultDiv.textContent = "Cannot connect to backend";
+        resultDiv.className = "result fail";
+      }
+    }
+  </script>
+</body>
+</html>
